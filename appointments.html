@@ -1,0 +1,252 @@
+// Appointment booking functionality
+
+async function loadServices() {
+    const services = await getServices();
+    const serviceSelect = document.getElementById('service_selected');
+    
+    if (serviceSelect && services.length > 0) {
+        // Clear existing options
+        serviceSelect.innerHTML = '';
+        
+        // Add services as options
+        services.forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.id;
+            option.textContent = service.name;
+            serviceSelect.appendChild(option);
+        });
+        
+        // Remove readonly attribute since it's now a select
+        serviceSelect.removeAttribute('readonly');
+        serviceSelect.classList.remove('non-editable');
+    }
+}
+
+async function submitAppointment(event) {
+    event.preventDefault();
+    
+    if (!isLoggedIn()) {
+        alert('Please login or register first to book an appointment.');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const formData = {
+        service_id: document.getElementById('service_selected').value,
+        appointment_date: document.getElementById('date').value,
+        appointment_time: document.getElementById('time').value,
+        notes: document.getElementById('message').value,
+        service_name: document.getElementById('service_selected').options[document.getElementById('service_selected').selectedIndex].text
+    };
+
+    try {
+        const result = await makeAuthRequest(`${API_BASE}/appointments`, {
+            method: 'POST',
+            body: JSON.stringify(formData)
+        });
+
+        alert('Appointment booked successfully!');
+        window.location.href = 'patient-dashboard.html'; // We'll create this next
+        
+    } catch (error) {
+        alert('Failed to book appointment: ' + error.message);
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadServices();
+    
+    const appointmentForm = document.getElementById('appointmentForm');
+    if (appointmentForm) {
+        appointmentForm.addEventListener('submit', submitAppointment);
+    }
+});<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - Hospital Appointment System</title>
+    <link rel="stylesheet" href="styles.css"> <!-- We'll create this next -->
+    <style>
+        /* Keep your existing styles, but we'll move them to styles.css later */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-image: url('bookApp.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            background-color: rgba(0, 123, 255, 0.9);
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar ul li {
+            margin-left: 20px;
+        }
+
+        .navbar ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: black;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+            color: #0056b3;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .submit-button {
+            background-color: rgba(0, 123, 255, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .submit-button:hover {
+            background-color: #007bff;
+        }
+
+        .login-prompt {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+        }
+
+        footer {
+            background-color: rgba(55, 59, 63, 0.9);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="logo">
+            <h2>Hospital Appointment System</h2>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="appointments.html">Book Appointment</a></li>
+            <li><a href="about_us.html">About Us</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li id="authLinks">
+                <a href="login.html">Login</a> | <a href="register.html">Register</a>
+            </li>
+        </ul>
+    </div>
+
+    <h1>Book an Appointment</h1>
+
+    <!-- Login Prompt for non-logged in users -->
+    <div id="loginPrompt" class="login-prompt" style="display: none;">
+        <p>Please <a href="login.html">login</a> or <a href="register.html">register</a> to book an appointment.</p>
+    </div>
+
+    <!-- Appointment Form -->
+    <form id="appointmentForm">
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <!-- Service Selection (now dynamic) -->
+        <label for="service_selected">Select Service:</label>
+        <select id="service_selected" name="service_selected" required>
+            <option value="">Loading services...</option>
+        </select>
+
+        <label for="date">Preferred Appointment Date:</label>
+        <input type="date" id="date" name="date" required min="<?php echo date('Y-m-d'); ?>">
+
+        <label for="time">Preferred Appointment Time:</label>
+        <input type="time" id="time" name="time" required>
+
+        <label for="message">Additional Information:</label>
+        <textarea id="message" name="message" rows="5"></textarea>
+
+        <button type="submit" class="submit-button">Submit Appointment</button>
+    </form>
+
+    <footer>
+        <p>&copy; 2024 Hospital Appointment System. All rights reserved.</p>
+    </footer>
+
+    <!-- Include JavaScript files -->
+    <script src="js/auth.js"></script>
+    <script src="js/appointments.js"></script>
+    
+    <script>
+        // Show/hide form based on login status
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginPrompt = document.getElementById('loginPrompt');
+            const appointmentForm = document.getElementById('appointmentForm');
+            const authLinks = document.getElementById('authLinks');
+            
+            if (isLoggedIn()) {
+                // User is logged in - show form, hide prompt
+                loginPrompt.style.display = 'none';
+                appointmentForm.style.display = 'block';
+                
+                // Update auth links to show logout
+                authLinks.innerHTML = '<a href="patient-dashboard.html">Dashboard</a> | <a href="#" onclick="logout()">Logout</a>';
+            } else {
+                // User not logged in - show prompt, hide form
+                loginPrompt.style.display = 'block';
+                appointmentForm.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

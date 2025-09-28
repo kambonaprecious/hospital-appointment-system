@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - Hospital Appointment System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8; /* Soft light blue background */
+            padding: 20px;
+        }
+
+        .navbar {
+            background-color: rgba(0, 123, 255, 0.9); 
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar ul li {
+            margin-left: 20px;
+        }
+
+        .navbar ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: rgba(0, 123, 255, 0.9); 
+        }
+
+        .service-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Grid layout with flexible columns */
+            grid-gap: 100px; /* Space between service boxes */
+            margin-top: 20px;
+        }
+
+        .service-box {
+            background-color: #ffffff; /* White background for service box */
+            padding: 15px; /* Reduced padding */
+            border: 2px solid #0288d1; /* Blue border */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .service-box:hover {
+            transform: scale(1.05);
+            border-color: rgba(0, 123, 255, 0.9); 
+        }
+
+        .service-box h3 {
+            color: rgba(0, 123, 255, 0.9); 
+        }
+
+        .service-box p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .service-image {
+            width: 100%; /* Make image responsive */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 4px; /* Round image corners */
+            margin-top: 10px; /* Add space above the image */
+        }
+
+        footer {
+            background-color: rgba(55, 59, 63, 0.9); 
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+    <script>
+        function showAlert(service) {
+            // Show alert message
+            alert("Please visit the Book Appointment page to schedule an appointment for " + service + ".");
+
+            // Redirect to the Book Appointment page
+            window.location.href = "appointments.html?service=" + encodeURIComponent(service);
+        }
+    </script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="logo">
+            <h2>Hospital Appointment System</h2>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="appointments.html">Book Appointment</a></li>
+            <li><a href="about_us.html">About Us</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+    </div>
+
+    <h1>Services We Offer</h1>
+
+    <!-- Services List -->
+    <div class="service-container">
+        <div class="service-box" onclick="showAlert('Pediatrics')">
+            <h3>Pediatrics</h3>
+            <p>Our pediatricians provide comprehensive healthcare services for infants, children, and adolescents.</p>
+            <img class="service-image" src="pediatrics.png" alt="Pediatrics Service">
+        </div>
+
+        <div class="service-box" onclick="showAlert('Neurology')">
+            <h3>Neurology</h3>
+            <p>Our Neurology Department specializes in treating neurological disorders with expert care.</p>
+            <img class="service-image" src="neurost.png" alt="Neurology Service">
+        </div>
+
+        <div class="service-box" onclick="showAlert('Cardiology')">
+            <h3>Cardiology</h3>
+            <p>We offer advanced cardiology services to diagnose and treat heart conditions.</p>
+            <img class="service-image" src="cadiolost.png" alt="Cardiology Service">
+        </div>
+
+        <div class="service-box" onclick="showAlert('General Physician')">
+            <h3>General Physician</h3>
+            <p>Our general physicians provide primary care for various medical conditions.</p>
+            <img class="service-image" src="physician.png" alt="General Physician Service">
+        </div>
+
+        <div class="service-box" onclick="showAlert('Emergency')">
+            <h3>Emergency</h3>
+            <p>We offer 24/7 emergency services for urgent and life-threatening medical situations.</p>
+            <img class="service-image" src="emergency.png" alt="Emergency Service">
+        </div>
+
+        <div class="service-box" onclick="showAlert('Immunization')">
+            <h3>Immunization</h3>
+            <p>We provide a range of immunization services to protect individuals from preventable diseases. Vaccines are administered in a safe and professional environment.</p>
+            <img class="service-image" src="immune2.png" alt="Immunization Service">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Hospital Appointment System. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

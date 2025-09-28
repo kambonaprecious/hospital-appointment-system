@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctor Dashboard - Hospital Appointment System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f7f9;
+    }
+    /* Navbar */
+    nav {
+      background: #0077b6;
+      padding: 10px;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: flex-start;
+      margin: 0;
+      padding: 0;
+    }
+    nav ul li {
+      margin: 0 15px;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    /* Container */
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Login */
+    #loginForm {
+      text-align: center;
+    }
+    #loginForm input {
+      display: block;
+      width: 50%;
+      margin: 10px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #loginForm button {
+      padding: 10px 20px;
+      background: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #loginForm button:hover {
+      background: #023e8a;
+    }
+
+    /* Dashboard */
+    #dashboard {
+      display: none;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 15px;
+    }
+    .tabs button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: #90e0ef;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tabs button.active {
+      background: #0077b6;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    table th {
+      background: #0077b6;
+      color: white;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button.saveBtn {
+      background: #0077b6;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.saveBtn:hover {
+      background: #023e8a;
+    }
+    .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.status-badge.scheduled {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-badge.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-complete, .btn-cancel {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin: 2px;
+}
+
+.btn-complete {
+    background: #28a745;
+    color: white;
+}
+
+.btn-cancel {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-complete:hover {
+    background: #218838;
+}
+
+.btn-cancel:hover {
+    background: #c82333;
+}
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about_us.html">About Us</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <!-- Login Form -->
+    <div id="loginForm">
+      <h2>Doctor Login</h2>
+      <input type="text" id="username" placeholder="Enter Username">
+      <input type="password" id="password" placeholder="Enter Password">
+      <button onclick="login()">Login</button>
+      <p id="loginError" style="color:red; display:none;">Invalid username or password!</p>
+    </div>
+
+    <!-- Doctor Dashboard -->
+    <div id="dashboard">
+      <h2>Welcome, Dr. <span id="doctorName"></span></h2>
+      <div class="tabs">
+        <button class="tabBtn active" onclick="openTab('appointments')">View Appointments</button>
+        <button class="tabBtn" onclick="openTab('schedule')">Set Schedule</button>
+        <button class="tabBtn" onclick="openTab('profile')">Profile</button>
+      </div>
+
+      <!-- Appointments Tab -->
+      <div id="appointments" class="tab-content active">
+        <h3>Upcoming Appointments</h3>
+        <table>
+          <tr>
+            <th>Patient Name</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+          <tr>
+            <td>John Banda</td>
+            <td>2025-10-05</td>
+            <td>10:00 AM</td>
+          </tr>
+          <tr>
+            <td>Mary Chirwa</td>
+            <td>2025-10-06</td>
+            <td>2:30 PM</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Schedule Tab -->
+      <div id="schedule" class="tab-content">
+        <h3>Set Available Schedule</h3>
+        <form id="scheduleForm">
+          <label>Date:</label>
+          <input type="date" id="scheduleDate">
+          <label>Time:</label>
+          <input type="time" id="scheduleTime">
+          <button type="button" class="saveBtn" onclick="saveSchedule()">Save Schedule</button>
+        </form>
+        <p id="scheduleMsg" style="color:green; display:none;">Schedule saved successfully!</p>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="profile" class="tab-content">
+        <h3>Doctor Profile</h3>
+        <form>
+          <label>Name:</label>
+          <input type="text" value="Dr. James Phiri">
+          <label>Email:</label>
+          <input type="email" value="dr.james@example.com">
+          <label>Specialization:</label>
+          <input type="text" value="Cardiologist">
+          <label>About:</label>
+          <textarea rows="4">Experienced cardiologist with 10+ years of practice.</textarea>
+          <button type="button" class="saveBtn">Update Profile</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+// Enhanced doctor dashboard with real data
+const API_BASE = 'http://localhost:3000/api';
+
+// Get doctor token
+function getDoctorToken() {
+    return localStorage.getItem('doctorToken');
+}
+
+// Make authenticated requests for doctors
+async function makeDoctorRequest(url, options = {}) {
+    const token = getDoctorToken();
+    
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    };
+
+    const mergedOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+
+    try {
+        const response = await fetch(url, mergedOptions);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Request failed');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+    }
+}
+
+// Enhanced login function
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const loginError = document.getElementById('loginError');
+
+    try {
+        const response = await fetch(`${API_BASE}/doctor-login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                email: username, 
+                password: password 
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+            // Save doctor token and data
+            localStorage.setItem('doctorToken', data.token);
+            localStorage.setItem('doctorData', JSON.stringify(data.doctor));
+            
+            document.getElementById('loginForm').style.display = "none";
+            document.getElementById('dashboard').style.display = "block";
+            document.getElementById('doctorName').innerText = data.doctor.name;
+            
+            // Load doctor's appointments
+            loadDoctorAppointments();
+        } else {
+            throw new Error(data.error || 'Login failed');
+        }
+    } catch (error) {
+        loginError.textContent = error.message;
+        loginError.style.display = "block";
+    }
+}
+
+// Load doctor's appointments from API
+async function loadDoctorAppointments() {
+    try {
+        // For now, we'll get all appointments since we don't have a specific endpoint
+        // In a real system, you'd have /api/doctor/appointments
+        const appointments = await makeDoctorRequest(`${API_BASE}/doctor-appointments`);
+        
+        const appointmentsTable = document.querySelector('#appointments table');
+        const tbody = appointmentsTable.querySelector('tbody') || appointmentsTable.insertRow().insertCell().appendChild(document.createElement('tbody'));
+        
+        // Clear existing rows (keep header)
+        tbody.innerHTML = '';
+        
+        if (appointments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No appointments scheduled</td></tr>';
+            return;
+        }
+
+        // Add appointment rows
+        appointments.forEach(apt => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${apt.patient_name || 'Unknown Patient'}</td>
+                <td>${formatDate(apt.appointment_date)}</td>
+                <td>${apt.appointment_time}</td>
+                <td>${apt.service_name}</td>
+                <td>
+                    <span class="status-badge ${apt.status}">${apt.status}</span>
+                    <button onclick="updateAppointmentStatus(${apt.id}, 'completed')" class="btn-complete">Complete</button>
+                    <button onclick="updateAppointmentStatus(${apt.id}, 'cancelled')" class="btn-cancel">Cancel</button>
+                </td>
+            `;
+        });
+
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        const appointmentsTable = document.querySelector('#appointments table');
+        const tbody = appointmentsTable.querySelector('tbody') || appointmentsTable.insertRow().insertCell().appendChild(document.createElement('tbody'));
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">Error loading appointments</td></tr>';
+    }
+}
+
+// Format date for display
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+// Update appointment status
+async function updateAppointmentStatus(appointmentId, status) {
+    if (confirm(`Are you sure you want to mark this appointment as ${status}?`)) {
+        try {
+            await makeDoctorRequest(`${API_BASE}/appointments/${appointmentId}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: status })
+            });
+            
+            alert(`Appointment marked as ${status} successfully!`);
+            loadDoctorAppointments(); // Refresh the list
+        } catch (error) {
+            alert('Error updating appointment: ' + error.message);
+        }
+    }
+}
+
+// Save doctor schedule
+async function saveSchedule() {
+    const date = document.getElementById('scheduleDate').value;
+    const time = document.getElementById('scheduleTime').value;
+    const scheduleMsg = document.getElementById('scheduleMsg');
+
+    if (!date || !time) {
+        alert('Please select both date and time');
+        return;
+    }
+
+    try {
+        await makeDoctorRequest(`${API_BASE}/doctor/schedule`, {
+            method: 'POST',
+            body: JSON.stringify({ date, time })
+        });
+
+        scheduleMsg.textContent = 'Schedule saved successfully!';
+        scheduleMsg.style.display = "block";
+        
+        // Clear form
+        document.getElementById('scheduleDate').value = '';
+        document.getElementById('scheduleTime').value = '';
+        
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            scheduleMsg.style.display = "none";
+        }, 3000);
+
+    } catch (error) {
+        alert('Error saving schedule: ' + error.message);
+    }
+}
+
+// Update doctor profile
+async function updateProfile() {
+    const name = document.querySelector('#profile input[type="text"]').value;
+    const email = document.querySelector('#profile input[type="email"]').value;
+    const specialization = document.querySelectorAll('#profile input[type="text"]')[1].value;
+    const about = document.querySelector('#profile textarea').value;
+
+    try {
+        await makeDoctorRequest(`${API_BASE}/doctor/profile`, {
+            method: 'PUT',
+            body: JSON.stringify({ name, email, specialization, about })
+        });
+
+        alert('Profile updated successfully!');
+    } catch (error) {
+        alert('Error updating profile: ' + error.message);
+    }
+}
+
+// Tab functionality (keep this as is)
+function openTab(tabId) {
+    let tabs = document.querySelectorAll('.tab-content');
+    let buttons = document.querySelectorAll('.tabBtn');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    buttons.forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+
+    // Load data when switching to appointments tab
+    if (tabId === 'appointments') {
+        loadDoctorAppointments();
+    }
+}
+
+// Check if doctor is already logged in
+document.addEventListener('DOMContentLoaded', function() {
+    const doctorToken = getDoctorToken();
+    const doctorData = JSON.parse(localStorage.getItem('doctorData') || '{}');
+    
+    if (doctorToken && doctorData.name) {
+        document.getElementById('loginForm').style.display = "none";
+        document.getElementById('dashboard').style.display = "block";
+        document.getElementById('doctorName').innerText = doctorData.name;
+        loadDoctorAppointments();
+    }
+});
+
+// Add this debug function to doctor.html script
+async function debugDoctorAppointments() {
+    try {
+        const token = getDoctorToken();
+        console.log('Doctor Token:', token);
+        
+        const response = await fetch('http://localhost:3000/api/doctor-appointments', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        // Show debug info on page
+        const debugDiv = document.createElement('div');
+        debugDiv.style.background = '#f0f0f0';
+        debugDiv.style.padding = '10px';
+        debugDiv.style.margin = '10px';
+        debugDiv.innerHTML = `<strong>Debug Info:</strong> Status: ${response.status}, Appointments: ${data.length}`;
+        document.getElementById('appointments').appendChild(debugDiv);
+        
+        return data;
+    } catch (error) {
+        console.error('Debug error:', error);
+        return [];
+    }
+}
+
+// Update the loadDoctorAppointments function to use debug
+async function loadDoctorAppointments() {
+    try {
+        const appointments = await debugDoctorAppointments(); // Use debug function
+        
+        const appointmentsTable = document.querySelector('#appointments table');
+        let tbody = appointmentsTable.querySelector('tbody');
+        
+        if (!tbody) {
+            tbody = document.createElement('tbody');
+            appointmentsTable.appendChild(tbody);
+        }
+        
+        tbody.innerHTML = '';
+        
+        if (appointments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No appointments scheduled</td></tr>';
+            return;
+        }
+
+        // Add appointment rows
+        appointments.forEach(apt => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${apt.patient_name || 'Unknown Patient'}</td>
+                <td>${formatDate(apt.appointment_date)}</td>
+                <td>${apt.appointment_time}</td>
+                <td>${apt.service_name}</td>
+                <td>
+                    <span class="status-badge ${apt.status}">${apt.status}</span>
+                    <button onclick="updateAppointmentStatus(${apt.id}, 'completed')" class="btn-complete">Complete</button>
+                    <button onclick="updateAppointmentStatus(${apt.id}, 'cancelled')" class="btn-cancel">Cancel</button>
+                </td>
+            `;
+        });
+
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        const appointmentsTable = document.querySelector('#appointments table');
+        let tbody = appointmentsTable.querySelector('tbody');
+        
+        if (!tbody) {
+            tbody = document.createElement('tbody');
+            appointmentsTable.appendChild(tbody);
+        }
+        
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading appointments: ' + error.message + '</td></tr>';
+    }
+}
+  </script>
+</body>
+</html>

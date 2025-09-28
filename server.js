@@ -1,3 +1,8 @@
+const { 
+    sendAppointmentConfirmation, 
+    sendAppointmentCancellation,
+    sendAppointmentReminder 
+} = require('./services/emailService');
 const express = require('express');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
@@ -137,14 +142,27 @@ app.get('/api/services', async (req, res) => {
     }
 });
 
-// 4. Book Appointment
+// 4. Book Appointment (UPDATED with email notification)
 app.post('/api/appointments', authenticateToken, async (req, res) => {
     try {
         const { service_id, appointment_date, appointment_time, notes, service_name } = req.body;
         const patient_id = req.user.id;
 
+        // Get patient details for email
+        const [patients] = await pool.execute(
+            'SELECT name, email FROM patients WHERE id = ?',
+            [patient_id]
+        );
+
+        if (patients.length === 0) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+
+        const patient = patients[0];
+
         // Find a doctor based on service type
         let doctor_id = null;
+        let doctor_name = null;
         
         const serviceToSpecialization = {
             'Pediatrics': 'Pediatrician',
@@ -158,12 +176,13 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
         const specialization = serviceToSpecialization[service_name] || 'General Physician';
 
         const [doctors] = await pool.execute(
-            'SELECT id FROM doctors WHERE specialization LIKE ? LIMIT 1',
+            'SELECT id, name FROM doctors WHERE specialization LIKE ? LIMIT 1',
             [`%${specialization}%`]
         );
 
         if (doctors.length > 0) {
             doctor_id = doctors[0].id;
+            doctor_name = doctors[0].name;
         }
 
         const [result] = await pool.execute(
@@ -172,10 +191,31 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
             [patient_id, doctor_id, service_id, appointment_date, appointment_time, notes]
         );
 
+        // Send confirmation email (don't await - send in background)
+        const appointmentData = {
+            id: result.insertId,
+            patientName: patient.name,
+            serviceName: service_name,
+            date: appointment_date,
+            time: appointment_time,
+            doctorName: doctor_name,
+            notes: notes
+        };
+
+        sendAppointmentConfirmation(patient.email, appointmentData)
+            .then(emailResult => {
+                if (emailResult.success) {
+                    console.log('Confirmation email sent to:', patient.email);
+                } else {
+                    console.error('Failed to send confirmation email:', emailResult.error);
+                }
+            });
+
         res.json({ 
             message: 'Appointment booked successfully', 
             appointment_id: result.insertId,
-            doctor_assigned: !!doctor_id
+            doctor_assigned: !!doctor_id,
+            email_sent: true
         });
 
     } catch (error) {
@@ -203,15 +243,20 @@ app.get('/api/my-appointments', authenticateToken, async (req, res) => {
     }
 });
 
-// 6. Cancel Appointment
+// 6. Cancel Appointment (UPDATED with email notification)
 app.put('/api/appointments/:id/cancel', authenticateToken, async (req, res) => {
     try {
         const appointmentId = req.params.id;
         const patient_id = req.user.id;
 
-        // Verify the appointment belongs to the patient
+        // Get appointment details with patient info
         const [appointments] = await pool.execute(
-            'SELECT * FROM appointments WHERE id = ? AND patient_id = ?',
+            `SELECT a.*, p.name as patient_name, p.email, s.name as service_name, d.name as doctor_name
+             FROM appointments a 
+             JOIN patients p ON a.patient_id = p.id 
+             JOIN services s ON a.service_id = s.id 
+             LEFT JOIN doctors d ON a.doctor_id = d.id 
+             WHERE a.id = ? AND a.patient_id = ?`,
             [appointmentId, patient_id]
         );
 
@@ -219,11 +264,32 @@ app.put('/api/appointments/:id/cancel', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Appointment not found' });
         }
 
+        const appointment = appointments[0];
+
         // Update appointment status to cancelled
         await pool.execute(
             'UPDATE appointments SET status = ? WHERE id = ?',
             ['cancelled', appointmentId]
         );
+
+        // Send cancellation email
+        const appointmentData = {
+            id: appointment.id,
+            patientName: appointment.patient_name,
+            serviceName: appointment.service_name,
+            date: appointment.appointment_date,
+            time: appointment.appointment_time,
+            doctorName: appointment.doctor_name
+        };
+
+        sendAppointmentCancellation(appointment.email, appointmentData)
+            .then(emailResult => {
+                if (emailResult.success) {
+                    console.log('Cancellation email sent to:', appointment.email);
+                } else {
+                    console.error('Failed to send cancellation email:', emailResult.error);
+                }
+            });
 
         res.json({ message: 'Appointment cancelled successfully' });
 
